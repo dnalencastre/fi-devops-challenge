@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: db-auth
-  namespace: duarte-test-app
+  namespace: default
 type: Opaque
 data:
   username: ZGItdXNlcg==
@@ -13,7 +13,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: test-app
-  namespace: duarte-test-app
+  namespace: default
   labels:
     run: test-app
 spec:
@@ -28,9 +28,10 @@ spec:
     spec:
       containers:
       - name: test-app
-        image: dnalencastre/fi-ops-test-app:0.0.1
+        image: dnalencastre/fi-ops-test-app:1.0.0
+        ports:
+        - containerPort: 8080
         env:
-            # note move user and password to a secret
           - name: POSTGRESQL_HOST
             value: "localhost"
           - name: POSTGRESQL_USER
@@ -62,6 +63,7 @@ spec:
           - "--structured-logs"
           # Replace DB_PORT with the port the proxy should listen on
           - "--port=5432"
+          # Replace the line below with the SQL instance "Connection Name"
           - "silent-wharf-383312:us-east1:fi-ops-test-db"
         securityContext:
           runAsNonRoot: true
@@ -84,14 +86,15 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: test-app-service
-  namespace: duarte-test-app
   labels:
     run: test-app
+  name: test-app-service
+  namespace: default
 spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 8080
   selector:
     run: test-app
-  ports:
-  - port: 8080
-    targetPort: 80
   type: LoadBalancer

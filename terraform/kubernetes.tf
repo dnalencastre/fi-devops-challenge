@@ -68,27 +68,27 @@ provider "kubernetes" {
 }
 
 
-resource "kubernetes_namespace" "duarte-test-app" {
-  metadata {
+# resource "kubernetes_namespace" "duarte-test-app" {
+#   metadata {
 
-    labels = {
-      name = "duarte-test-app"
-    }
+#     labels = {
+#       name = "duarte-test-app"
+#     }
 
-    name = "duarte-test-app"
-  }
+#     name = "duarte-test-app"
+#   }
 
-  # trying to get this to be destroyed before the cluster is destroyed
-  depends_on = [
-    google_container_cluster.primary,
-    google_container_node_pool.primary_preemptible_nodes
-  ]
-}
+#   # trying to get this to be destroyed before the cluster is destroyed
+#   depends_on = [
+#     google_container_cluster.primary,
+#     google_container_node_pool.primary_preemptible_nodes
+#   ]
+# }
 
 resource "kubernetes_secret" "gcp-service-account" {
   metadata {
     name = "google-application-credentials"
-    namespace = kubernetes_namespace.duarte-test-app.metadata.0.name
+    # namespace = kubernetes_namespace.duarte-test-app.metadata.0.name
 
   }
   data = {
