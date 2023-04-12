@@ -18,6 +18,12 @@ The cluster and DB instance are deployed onto the "My First Project" default pro
 The following diagram gives a general view of the GCP architecture
 ![General Architecture](./general_arch.png "General Architecture")
 
+The current deployment implementation is lacking in facilities for public access.
+The following would be needed:
+- A dns name (and domain) to allow for easy access
+- Using TLS encrypted connections to access the API
+- Replace the basic external loadbalancer kubernetes `service` with an ingress or a mesh service to deal with routing the traffic to the individual pods.
+
 ## Kubernetes Cluster
 
 A GKE cluster is deployed by terraform.
@@ -76,6 +82,69 @@ docker tag fi-ops-test-app:1.0.0 dnalencastre/fi-ops-test-app:1.0.0
 docker push dnalencastre/fi-ops-test-app:1.0.0
 ```
 
+## Security
+
+Security should be further increased by:
+- Split the service account in use by the cluster and by cloud-sql-proxy to access the SQL instance, to allow separation of privileges and more restrictive permission set.
+- Using TLS termination on the Load balancer, to encrypt traffic from the clients to the application.
+- Using a secret management system (such as vault, secret manager) to manage secrets, most importantly DB connection secrets
+- Create a network architecture that allows the DB instance to not be exposed to the public internet
+- Create a network architecture that allows segregation of the various components of the system.
+- Keeping terraform state and locking on the web, to minimize state synchronization issues and conflicting simultaneous operations.
+
+A network could be designed so as to enable:
+- that the only exposed resources are the load balancers
+- that only the kubernetes nodes are accessible by the load balancer
+- that the DB instance is only reacheable by the nodes of the kuberntes cluster and by authorized developers/admin personell.
+- enforcment of access controls to developers/admin personell to the relevant resources (e.g. by using vpns, acls and firewalling), reducing the exposure footprint of the system.
+- Deployment of IDS/IDP systems, on hosts and on the network.
+
+## scalability
+
+The current implementation already allows for (static) scaling of:
+- Nodes in the cluster
+- Pods in the service
+
+Pods can be scaled up by editing the number of replicas on `kubernetes/deployment.yaml` and reaplying.
+
+Nodes can be scaled up by editing the `kubernetes_node_count` variable on the `terraform/terraform.tfvars` file and re-applying terraform.
+
+### Automated scaling
+
+Automated pod autoscaling can be achieved with the `HorizontalPodAutoscaler`. The decision regarding which metrics to use triggering the autoscalling would need further studie.
+
+Automated node autoscaling could be achieved via GKE's autoscaler.
+
+
+# Possible solution for Deployment via CI/CD
+
+The current implementation relies on manual instantiation of terraform and kubectl.
+
+Separate Pipelines/taks for deploying the infrastructure and the application.
+
+### infrastructure
+The infrastructure should have `man-in-the-loop` checks, to avoid completely automated destruction.
+
+Terraform state should be kept on a cloud resource (e.g. blob storage), as well as state locking, to enable multiple concurrent/competing jobs and build processes. Another option would be hosted terraform.
+
+If not using hosted terraform, the build hosts would need access to `kubectl` and the providers.
+
+Deployment pipelines could be triggered by using specific tags on the code.
+
+When major changes are to be applied, consider deploying completely new cluster, and use an external load balancer to switch traffic.
+
+### Application
+
+The current application deployment method is a good base for zero downtime deployments.
+
+The kubernetes `deployment` resource, by default, allows for rolling deployments of new versions, allowing for no dowtime.
+Alternatively, a `blue-green` deployment model could be considered, by leveraging the labelling mechanism.
+
+The secret portion of the manifest should ideally be replaced by a proper secret management system (such as vault), or moved to it's own file, possibly with a separate deployment pipeline.
+
+Instead of a `service` resource, an `ingress` resource should be used, ideally on a different file. This could also be deployed with a different pipeline, since changing url endpoints could be considered sensitive.
+
+A system such as ArgoCD could also be leveraged for kuberntes native continuos delivery.
 
 # Deployment
 
@@ -111,7 +180,8 @@ gcloud container clusters get-credentials duarte-test-gke-01 \
 ```
 Replace `duarte-test-gke-01` and the region with the values used for your deployment.
 
-## Application deployment
+
+## Application
 
 The application deployment is specified on `kubernetes/deployment.yaml`
 
