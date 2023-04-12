@@ -15,7 +15,7 @@ GCP was chosen due to the features available on the free tier, the long free tri
 
 The cluster and DB instance are deployed onto the "My First Project" default project, on zone B of the us-east1 region. All of these can easily be change on kubernetes/terraform.tfvars .
 
-
+The following diagram gives a general view of the GCP architecture
 ![General Architecture](./general_arch.png "General Architecture")
 
 ## Kubernetes Cluster
@@ -128,6 +128,3 @@ Obtain the ip address of the load balancer serving the deployment with
 ```
 kubectl get service/test-app-service -o jsonpath='{.status.loadBalancer.ingress[*].ip}'
 ```
-
-
-curl http://34.148.28.181/health
