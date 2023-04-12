@@ -41,12 +41,12 @@ A service account is configured to allow the cloud-sql-proxy to connect to the S
 For this, Cloudsql admin api must be enabled.
 
 
-Terraform manifest for the SQL server is under `kubernetes/kubernetes.tf`
+Terraform manifest for the kubernetes cluster is under `kubernetes/kubernetes.tf`
 
 ## SQL server
 
 A Cloud SQL instance is deployed by terraform.
-This istance is deployed with public addresses only, as using private addresses would need to define VPCs and networks, which would need a more complext terraform manifest.
+This istance is deployed with public addresses only, as using private addresses would need the definition of a VPC and networks, which would cause a more complext terraform manifest.
 
 For the application to access this instance, Cloudsql admin api must be enabled.
 
@@ -111,7 +111,7 @@ Nodes can be scaled up by editing the `kubernetes_node_count` variable on the `t
 
 ### Automated scaling
 
-Automated pod autoscaling can be achieved with the `HorizontalPodAutoscaler`. The decision regarding which metrics to use triggering the autoscalling would need further studie.
+Automated pod autoscaling could be achieved with the `HorizontalPodAutoscaler`. The decision regarding which metrics to use triggering the autoscalling would need further studie.
 
 Automated node autoscaling could be achieved via GKE's autoscaler.
 
@@ -129,13 +129,15 @@ Terraform state should be kept on a cloud resource (e.g. blob storage), as well 
 
 If not using hosted terraform, the build hosts would need access to `kubectl` and the providers.
 
-Deployment pipelines could be triggered by using specific tags on the code.
+Deployment pipelines could be triggered by using specific tags on the code, triggering specific github actions or equivalent.
 
 When major changes are to be applied, consider deploying completely new cluster, and use an external load balancer to switch traffic.
 
 ### Application
 
 The current application deployment method is a good base for zero downtime deployments.
+
+Deployment pipelines could be triggered by using specific tags on the code, triggering specific github actions or equivalent.
 
 The kubernetes `deployment` resource, by default, allows for rolling deployments of new versions, allowing for no dowtime.
 Alternatively, a `blue-green` deployment model could be considered, by leveraging the labelling mechanism.
@@ -171,7 +173,7 @@ Review and Deploy the infrastructure
 terraform apply
 ```
 
-Once finished, terraform will report on the `Connection Name` for the db instance. This will configured on the cloud-sql-proxy pod on the kubernetes deployment manifest.
+Once finished, terraform will report on the `Connection Name` for the db instance. This _must_ be configured on the cloud-sql-proxy pod on the kubernetes deployment manifest.
 
 Once deployed, add the kubernetes cluster's authentication details to your kube config with:
 ```
@@ -187,7 +189,7 @@ The application deployment is specified on `kubernetes/deployment.yaml`
 
 For simplicity , the default namespace is used.
 
-Edit ``kubernetes/deployment.yaml` and the cloud-sql-proxy "Connection Name" to the value provided by the `db_connection_name` output from the terraform deployment step.
+Edit `kubernetes/deployment.yaml` and the cloud-sql-proxy "Connection Name" to the value provided by the `db_connection_name` output from the terraform deployment step.
 
 apply with:
 ```
