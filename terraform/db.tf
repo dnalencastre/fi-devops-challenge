@@ -23,3 +23,7 @@ resource "google_sql_user" "fi_ops_test_db_user" {
 output "db_ip_address" {
   value = google_sql_database_instance.fi_ops_test_db.first_ip_address
 }
+
+output "db_connection_name" {
+  value = google_sql_database_instance.fi_ops_test_db.connection_name
+}
