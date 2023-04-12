@@ -120,7 +120,7 @@ Automated node autoscaling could be achieved via GKE's autoscaler.
 
 The current implementation relies on manual instantiation of terraform and kubectl.
 
-Separate Pipelines/taks for deploying the infrastructure and the application.
+For CI/CD deployment, separate Pipelines/actions/tasks could be used for deploying the infrastructure and the application.
 
 ### infrastructure
 The infrastructure should have `man-in-the-loop` checks, to avoid completely automated destruction.
@@ -142,7 +142,7 @@ Deployment pipelines could be triggered by using specific tags on the code, trig
 The kubernetes `deployment` resource, by default, allows for rolling deployments of new versions, allowing for no dowtime.
 Alternatively, a `blue-green` deployment model could be considered, by leveraging the labelling mechanism.
 
-The secret portion of the manifest should ideally be replaced by a proper secret management system (such as vault), or moved to it's own file, possibly with a separate deployment pipeline.
+The secret portion of the manifest should ideally be replaced by a proper secret management system (such as vault), or moved to it's own file, possibly with a separate deployment pipeline/task/action.
 
 Instead of a `service` resource, an `ingress` resource should be used, ideally on a different file. This could also be deployed with a different pipeline, since changing url endpoints could be considered sensitive.
 
